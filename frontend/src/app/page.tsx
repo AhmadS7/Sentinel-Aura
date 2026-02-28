@@ -4,9 +4,14 @@ import { useEffect, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Stars } from "@react-three/drei";
 import { RegionPrice, fetchPrices, migrateWorkload } from "@/lib/api";
-import GlobalScene from "@/components/GlobalScene";
+import dynamic from "next/dynamic";
 import SavingsHUD from "@/components/SavingsHUD";
 import { Loader2, Zap } from "lucide-react";
+
+const GlobalScene = dynamic(() => import("@/components/GlobalScene"), {
+  ssr: false,
+  loading: () => null
+});
 
 export default function Dashboard() {
   const [prices, setPrices] = useState<RegionPrice[]>([]);

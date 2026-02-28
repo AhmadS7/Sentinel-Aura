@@ -49,6 +49,11 @@ func NewMigrationController() *MigrationController {
 		config, err = rest.InClusterConfig()
 	}
 
+	if err != nil || config == nil {
+		log.Printf("Kubernetes client init failed (no config), running purely in mock mode: %v", err)
+		return &MigrationController{rm: &RegionManager{Clients: make(map[string]*kubernetes.Clientset)}, mockMode: true}
+	}
+
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		log.Printf("Kubernetes client init failed, running purely in mock mode: %v", err)
