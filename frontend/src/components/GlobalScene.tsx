@@ -1,0 +1,158 @@
+"use client";
+
+import React, { useRef, useMemo } from "react";
+import { useFrame } from "@react-three/fiber";
+import { Html } from "@react-three/drei";
+import * as THREE from "three";
+import { motion } from "framer-motion-3d";
+import { RegionPrice } from "@/lib/api";
+
+function latLongToVector3(lat: number, lon: number, radius: number): [number, number, number] {
+    const phi = (90 - lat) * (Math.PI / 180);
+    const theta = (lon + 180) * (Math.PI / 180);
+
+    const x = -(radius * Math.sin(phi) * Math.cos(theta));
+    const z = (radius * Math.sin(phi) * Math.sin(theta));
+    const y = (radius * Math.cos(phi));
+    return [x, y, z];
+}
+
+const REGION_COORDS: Record<string, [number, number, number]> = {
+    "US-East": latLongToVector3(38, -78, 1.05),
+    "US-West": latLongToVector3(37, -121, 1.05),
+    "EU-West": latLongToVector3(53, -8, 1.05),
+    "AP-South": latLongToVector3(19, 72.8, 1.05),
+    "AP-Northeast": latLongToVector3(35.6, 139.6, 1.05),
+};
+
+const AtmosphereShader = {
+    uniforms: {
+        c: { type: "f", value: 0.5 },
+        p: { type: "f", value: 3.5 },
+        glowColor: { type: "c", value: new THREE.Color(0x3b82f6) },
+        viewVector: { type: "v3", value: new THREE.Vector3() },
+    },
+    vertexShader: `
+    uniform vec3 viewVector;
+    uniform float c;
+    uniform float p;
+    varying float intensity;
+    void main() {
+      vec3 vNormal = normalize( normalMatrix * normal );
+      vec3 vNormel = normalize( normalMatrix * viewVector );
+      intensity = pow( c - dot(vNormal, vNormel), p );
+      gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+    }
+  `,
+    fragmentShader: `
+    uniform vec3 glowColor;
+    varying float intensity;
+    void main() {
+      vec3 glow = glowColor * intensity;
+      gl_FragColor = vec4( glow, 1.0 );
+    }
+  `
+};
+
+export default function GlobalScene({ prices, onSelectTarget, currentTarget }: { prices: RegionPrice[], onSelectTarget: (r: string) => void, currentTarget: string | null }) {
+    const earthRef = useRef<THREE.Group>(null);
+
+    // Calculate points for the Earth sphere
+    const particles = useMemo(() => {
+        const p = [];
+        for (let i = 0; i < 4000; i++) {
+            const lat = (Math.random() - 0.5) * 180;
+            const lon = (Math.random() - 0.5) * 360;
+            p.push(...latLongToVector3(lat, lon, 1));
+        }
+        return new Float32Array(p);
+    }, []);
+
+    useFrame((state) => {
+        if (earthRef.current && !currentTarget) {
+            earthRef.current.rotation.y += 0.0005; // Base rotation
+        }
+    });
+
+    // Calculate dynamic rotation if a target is selected
+    const targetCoords = currentTarget && REGION_COORDS[currentTarget];
+    const targetRotation = targetCoords
+        ? [0, Math.atan2(targetCoords[0], targetCoords[2]), 0]
+        : [0, 0, 0];
+
+    return (
+        <motion.group
+            ref={earthRef as any}
+            animate={{
+                rotation: currentTarget ? targetRotation : [0, earthRef.current?.rotation.y || 0, 0]
+            }}
+            transition={{ type: "spring", stiffness: 50, damping: 20 }}
+        >
+            {/* 3D Earth Points Globe */}
+            <points>
+                <bufferGeometry>
+                    <bufferAttribute
+                        attach="attributes-position"
+                        count={particles.length / 3}
+                        array={particles}
+                        itemSize={3}
+                    />
+                </bufferGeometry>
+                <pointsMaterial color="#3b82f6" size={0.01} sizeAttenuation transparent opacity={0.6} />
+            </points>
+
+            {/* Core surface to block see-through for the grid */}
+            <mesh>
+                <sphereGeometry args={[0.98, 32, 32]} />
+                <meshBasicMaterial color="#020617" />
+            </mesh>
+
+            {/* Atmospheric Glow */}
+            <mesh>
+                <sphereGeometry args={[1.15, 32, 32]} />
+                <shaderMaterial
+                    args={[AtmosphereShader]}
+                    transparent
+                    blending={THREE.AdditiveBlending}
+                    side={THREE.BackSide}
+                />
+            </mesh>
+
+            {/* Region Markers */}
+            {prices.map((rp) => {
+                const coords = REGION_COORDS[rp.region] || [0, 1.05, 0];
+                const isCheap = rp.price < 0.04;
+
+                return (
+                    <group key={rp.region} position={coords}>
+                        {/* HTML Tooltip on the marker */}
+                        <Html center distanceFactor={2}>
+                            <div
+                                className={`flex flex-col items-center justify-center p-2 rounded-lg text-xs text-white cursor-pointer transition-all duration-300 ${isCheap
+                                        ? "bg-green-600/80 backdrop-blur-md border border-green-400 rotate-0 scale-125 shadow-[0_0_25px_rgba(34,197,94,0.7)] z-50 hover:bg-green-500"
+                                        : "bg-red-900/50 backdrop-blur-sm border border-red-700/50 opacity-50 hover:opacity-100"
+                                    }`}
+                                onClick={() => onSelectTarget(rp.region)}
+                            >
+                                <div className="font-bold tracking-wider">{rp.region}</div>
+                                <div className="text-[10px] font-mono mt-1 ${isCheap ? 'text-green-200' : 'text-red-300'}">${rp.price.toFixed(3)}/hr</div>
+
+                                {isCheap && (
+                                    <button
+                                        className="mt-2 text-[10px] font-bold uppercase tracking-widest bg-white text-green-900 px-3 py-1 rounded transition-colors hover:bg-green-100"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onSelectTarget(rp.region);
+                                        }}
+                                    >
+                                        1-Click Migrate
+                                    </button>
+                                )}
+                            </div>
+                        </Html>
+                    </group>
+                );
+            })}
+        </motion.group>
+    );
+}
