@@ -107,9 +107,7 @@ export default function GlobalScene({ prices, onSelectTarget, currentTarget }: {
                 <bufferGeometry>
                     <bufferAttribute
                         attach="attributes-position"
-                        count={particles.length / 3}
-                        array={particles}
-                        itemSize={3}
+                        args={[particles, 3]}
                     />
                 </bufferGeometry>
                 <pointsMaterial color="#d4d4d8" size={0.03} sizeAttenuation transparent opacity={0.8} />
