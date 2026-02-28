@@ -103,8 +103,8 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="absolute inset-0 z-0">
-        <Canvas camera={{ position: [0, 0, 3] }}>
+      <div className="absolute inset-0 z-0 w-full h-full pointer-events-auto">
+        <Canvas camera={{ position: [0, 0, 3], fov: 45 }}>
           <ambientLight intensity={0.5} />
           <directionalLight position={[10, 10, 5]} intensity={1} />
           <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />

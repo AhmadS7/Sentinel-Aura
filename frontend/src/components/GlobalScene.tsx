@@ -18,11 +18,11 @@ function latLongToVector3(lat: number, lon: number, radius: number): [number, nu
 }
 
 const REGION_COORDS: Record<string, [number, number, number]> = {
-    "US-East": latLongToVector3(38, -78, 1.05),
-    "US-West": latLongToVector3(37, -121, 1.05),
-    "EU-West": latLongToVector3(53, -8, 1.05),
-    "AP-South": latLongToVector3(19, 72.8, 1.05),
-    "AP-Northeast": latLongToVector3(35.6, 139.6, 1.05),
+    "US-East": latLongToVector3(38, -78, 1.05 * 2.5),
+    "US-West": latLongToVector3(37, -121, 1.05 * 2.5),
+    "EU-West": latLongToVector3(53, -8, 1.05 * 2.5),
+    "AP-South": latLongToVector3(19, 72.8, 1.05 * 2.5),
+    "AP-Northeast": latLongToVector3(35.6, 139.6, 1.05 * 2.5),
 };
 
 const AtmosphereShader = {
@@ -89,7 +89,7 @@ export default function GlobalScene({ prices, onSelectTarget, currentTarget }: {
             transition={{ type: "spring", stiffness: 50, damping: 20 }}
         >
             {/* 3D Earth Points Globe */}
-            <points>
+            <points scale={2.5}>
                 <bufferGeometry>
                     <bufferAttribute
                         attach="attributes-position"
@@ -98,17 +98,17 @@ export default function GlobalScene({ prices, onSelectTarget, currentTarget }: {
                         itemSize={3}
                     />
                 </bufferGeometry>
-                <pointsMaterial color="#3b82f6" size={0.01} sizeAttenuation transparent opacity={0.6} />
+                <pointsMaterial color="#3b82f6" size={0.015} sizeAttenuation transparent opacity={0.8} />
             </points>
 
             {/* Core surface to block see-through for the grid */}
-            <mesh>
+            <mesh scale={2.5}>
                 <sphereGeometry args={[0.98, 32, 32]} />
                 <meshBasicMaterial color="#020617" />
             </mesh>
 
             {/* Atmospheric Glow */}
-            <mesh>
+            <mesh scale={2.5}>
                 <sphereGeometry args={[1.15, 32, 32]} />
                 <shaderMaterial
                     args={[AtmosphereShader]}
@@ -129,8 +129,8 @@ export default function GlobalScene({ prices, onSelectTarget, currentTarget }: {
                         <Html center distanceFactor={2}>
                             <div
                                 className={`flex flex-col items-center justify-center p-2 rounded-lg text-xs text-white cursor-pointer transition-all duration-300 ${isCheap
-                                        ? "bg-green-600/80 backdrop-blur-md border border-green-400 rotate-0 scale-125 shadow-[0_0_25px_rgba(34,197,94,0.7)] z-50 hover:bg-green-500"
-                                        : "bg-red-900/50 backdrop-blur-sm border border-red-700/50 opacity-50 hover:opacity-100"
+                                    ? "bg-green-600/80 backdrop-blur-md border border-green-400 rotate-0 scale-125 shadow-[0_0_25px_rgba(34,197,94,0.7)] z-50 hover:bg-green-500"
+                                    : "bg-red-900/50 backdrop-blur-sm border border-red-700/50 opacity-50 hover:opacity-100"
                                     }`}
                                 onClick={() => onSelectTarget(rp.region)}
                             >

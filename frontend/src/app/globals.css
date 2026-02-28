@@ -1,17 +1,27 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-:root {
-  --background: #020617;
-  --foreground: #f8fafc;
+@theme {
+  --color-background: #020617;
+  --color-foreground: #f8fafc;
 }
 
+html,
 body {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
   color: var(--foreground);
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
-  overflow: hidden;
+}
+
+/* Ensure next.js app container fills screen */
+#__next,
+body>div.antialiased {
+  width: 100vw;
+  height: 100vh;
 }
 
 .text-shadow-glow {
