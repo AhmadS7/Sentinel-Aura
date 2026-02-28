@@ -89,7 +89,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="w-screen h-screen bg-[#020617] relative overflow-hidden text-white font-sans">
+    <div className="w-screen h-screen bg-[#0a0a0a] relative overflow-hidden text-neutral-200 font-sans">
       <SavingsHUD
         currentTotalSaving={totalSaving}
         latestDropRegion={latestDrop?.region || null}
@@ -98,7 +98,7 @@ export default function Dashboard() {
       />
 
       {globalError && (
-        <div className="absolute top-8 left-1/2 -translate-x-1/2 z-30 bg-red-900/90 border border-red-500 text-white px-6 py-3 rounded-lg shadow-xl shadow-red-900/50">
+        <div className="absolute top-8 left-1/2 -translate-x-1/2 z-30 bg-neutral-900/90 border border-red-900/40 text-red-400 px-6 py-4 rounded-2xl shadow-xl backdrop-blur-md text-sm tracking-wide font-medium">
           {globalError}
         </div>
       )}
@@ -114,28 +114,28 @@ export default function Dashboard() {
       </div>
 
       {targetRegion && (
-        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center">
-          <div className="bg-black/80 backdrop-blur border border-white/20 p-6 rounded-xl text-center mb-4 max-w-lg shadow-2xl">
-            <h3 className="text-xl font-bold mb-2">Target Region: {targetRegion}</h3>
-            <p className="text-gray-400 text-sm mb-4">
-              Pods will be smoothly migrated over. A background <strong className="text-yellow-400">Dry Run</strong> will execute first to prevent negative arbitrage margins from Egress costs.
+        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center w-full max-w-xl px-4">
+          <div className="bg-neutral-900/80 backdrop-blur-md border border-neutral-800 p-8 rounded-2xl text-center w-full shadow-2xl">
+            <h3 className="text-xl font-light tracking-wide text-white mb-2">Target Region: <span className="font-medium">{targetRegion}</span></h3>
+            <p className="text-neutral-400 text-sm mb-6 leading-relaxed">
+              Pods will be smoothly migrated over. A background <strong className="text-neutral-300 font-medium">Dry Run</strong> will execute first to prevent negative arbitrage margins from Egress costs.
             </p>
             <div className="flex gap-4">
               <button
                 onClick={() => setTargetRegion(null)}
-                className="flex-1 border border-white/20 text-white font-bold py-4 px-8 rounded-lg transition-colors hover:bg-white/10"
+                className="flex-1 bg-transparent border border-neutral-800 text-neutral-300 font-medium py-3 px-6 rounded-xl transition-colors hover:bg-neutral-800/50 hover:text-white uppercase tracking-wider text-xs"
               >
                 CANCEL
               </button>
               <button
                 onClick={handleMigrate}
                 disabled={isMigrating}
-                className="flex-2 relative group overflow-hidden bg-white text-black font-bold py-4 px-8 rounded-lg transition-transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-2"
+                className="flex-2 relative group overflow-hidden bg-neutral-100 text-neutral-950 font-semibold py-3 px-6 rounded-xl transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-2 uppercase tracking-wider text-xs"
               >
                 {isMigrating ? (
-                  <><Loader2 className="animate-spin w-5 h-5" /> VALIDATING...</>
+                  <><Loader2 className="animate-spin w-4 h-4" /> VALIDATING...</>
                 ) : (
-                  <><Zap className="w-5 h-5 text-yellow-500" /> EXECUTE ARBITRAGE</>
+                  <><Zap className="w-4 h-4" /> EXECUTE ARBITRAGE</>
                 )}
               </button>
             </div>

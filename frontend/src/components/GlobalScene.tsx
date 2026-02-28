@@ -29,7 +29,7 @@ const AtmosphereShader = {
     uniforms: {
         c: { type: "f", value: 0.5 },
         p: { type: "f", value: 3.5 },
-        glowColor: { type: "c", value: new THREE.Color(0x3b82f6) },
+        glowColor: { type: "c", value: new THREE.Color(0x52525b) }, // Zinc 600
         viewVector: { type: "v3", value: new THREE.Vector3() },
     },
     vertexShader: `
@@ -98,7 +98,7 @@ export default function GlobalScene({ prices, onSelectTarget, currentTarget }: {
                         itemSize={3}
                     />
                 </bufferGeometry>
-                <pointsMaterial color="#3b82f6" size={0.015} sizeAttenuation transparent opacity={0.8} />
+                <pointsMaterial color="#52525b" size={0.015} sizeAttenuation transparent opacity={0.8} />
             </points>
 
             {/* Core surface to block see-through for the grid */}
@@ -128,18 +128,18 @@ export default function GlobalScene({ prices, onSelectTarget, currentTarget }: {
                         {/* HTML Tooltip on the marker */}
                         <Html center distanceFactor={2}>
                             <div
-                                className={`flex flex-col items-center justify-center p-2 rounded-lg text-xs text-white cursor-pointer transition-all duration-300 ${isCheap
-                                    ? "bg-green-600/80 backdrop-blur-md border border-green-400 rotate-0 scale-125 shadow-[0_0_25px_rgba(34,197,94,0.7)] z-50 hover:bg-green-500"
-                                    : "bg-red-900/50 backdrop-blur-sm border border-red-700/50 opacity-50 hover:opacity-100"
+                                className={`flex flex-col items-center justify-center p-3 rounded-xl transition-all duration-300 cursor-pointer ${isCheap
+                                    ? "bg-neutral-900/80 backdrop-blur-md border border-neutral-700/80 text-white scale-110 shadow-xl z-50 hover:border-neutral-600"
+                                    : "bg-neutral-900/40 backdrop-blur-sm border border-neutral-800/50 text-neutral-400 opacity-60 hover:opacity-100 hover:bg-neutral-900/60"
                                     }`}
                                 onClick={() => onSelectTarget(rp.region)}
                             >
-                                <div className="font-bold tracking-wider">{rp.region}</div>
-                                <div className="text-[10px] font-mono mt-1 ${isCheap ? 'text-green-200' : 'text-red-300'}">${rp.price.toFixed(3)}/hr</div>
+                                <div className="font-semibold text-xs tracking-wider uppercase">{rp.region}</div>
+                                <div className={`text-[10px] font-mono mt-1 ${isCheap ? 'text-neutral-300' : 'text-neutral-500'}`}>${rp.price.toFixed(3)}/hr</div>
 
                                 {isCheap && (
                                     <button
-                                        className="mt-2 text-[10px] font-bold uppercase tracking-widest bg-white text-green-900 px-3 py-1 rounded transition-colors hover:bg-green-100"
+                                        className="mt-3 text-[10px] font-medium tracking-widest uppercase bg-neutral-800 border border-neutral-700 text-white px-3 py-1.5 rounded-lg transition-colors hover:bg-neutral-700 hover:border-neutral-600"
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             onSelectTarget(rp.region);
