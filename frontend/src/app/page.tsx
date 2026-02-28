@@ -104,7 +104,10 @@ export default function Dashboard() {
       )}
 
       <div className="absolute inset-0 z-0 w-full h-full pointer-events-auto">
-        <Canvas camera={{ position: [0, 0, 3], fov: 45 }}>
+        <Canvas
+          camera={{ position: [0, 0, 8], fov: 45 }}
+          gl={{ preserveDrawingBuffer: true, antialias: true, alpha: true }}
+        >
           <ambientLight intensity={1.5} />
           <directionalLight position={[10, 10, 5]} intensity={2.5} color="#ffffff" />
           <pointLight position={[-10, -10, -10]} intensity={1.5} color="#a1a1aa" />
