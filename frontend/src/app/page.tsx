@@ -115,28 +115,28 @@ export default function Dashboard() {
       </div>
 
       {targetRegion && (
-        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center w-full max-w-xl px-4">
-          <div className="bg-neutral-900/80 backdrop-blur-md border border-neutral-800 p-8 rounded-2xl text-center w-full shadow-2xl">
-            <h3 className="text-xl font-light tracking-wide text-white mb-2">Target Region: <span className="font-medium">{targetRegion}</span></h3>
-            <p className="text-neutral-400 text-sm mb-6 leading-relaxed">
-              Pods will be smoothly migrated over. A background <strong className="text-neutral-300 font-medium">Dry Run</strong> will execute first to prevent negative arbitrage margins from Egress costs.
+        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center">
+          <div className="bg-black/80 backdrop-blur border border-white/20 p-6 rounded-xl text-center mb-4 max-w-lg shadow-[0_0_40px_rgba(255,255,255,0.1)]">
+            <h3 className="text-xl font-bold mb-2">Target Region: {targetRegion}</h3>
+            <p className="text-gray-400 text-sm mb-4 leading-relaxed">
+              Pods will be smoothly migrated over. A background <strong className="text-yellow-400 font-bold">Dry Run</strong> will execute first to prevent negative arbitrage margins from Egress costs.
             </p>
             <div className="flex gap-4">
               <button
                 onClick={() => setTargetRegion(null)}
-                className="flex-1 bg-transparent border border-neutral-800 text-neutral-300 font-medium py-3 px-6 rounded-xl transition-colors hover:bg-neutral-800/50 hover:text-white uppercase tracking-wider text-xs"
+                className="flex-1 border border-white/20 text-white font-bold py-4 px-8 rounded-lg transition-colors hover:bg-white/10 shadow-lg"
               >
                 CANCEL
               </button>
               <button
                 onClick={handleMigrate}
                 disabled={isMigrating}
-                className="flex-2 relative group overflow-hidden bg-neutral-100 text-neutral-950 font-semibold py-3 px-6 rounded-xl transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-2 uppercase tracking-wider text-xs"
+                className="flex-2 relative group overflow-hidden bg-white text-black font-bold py-4 px-8 rounded-lg transition-transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.4)]"
               >
                 {isMigrating ? (
-                  <><Loader2 className="animate-spin w-4 h-4" /> VALIDATING...</>
+                  <><Loader2 className="animate-spin w-5 h-5" /> VALIDATING...</>
                 ) : (
-                  <><Zap className="w-4 h-4" /> EXECUTE ARBITRAGE</>
+                  <><Zap className="w-5 h-5 text-yellow-500" /> EXECUTE ARBITRAGE</>
                 )}
               </button>
             </div>

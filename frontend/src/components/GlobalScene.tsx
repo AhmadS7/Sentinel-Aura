@@ -4,7 +4,6 @@ import React, { useRef, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import * as THREE from "three";
-import { motion } from "framer-motion-3d";
 import { RegionPrice } from "@/lib/api";
 
 function latLongToVector3(lat: number, lon: number, radius: number): [number, number, number] {
@@ -68,26 +67,41 @@ export default function GlobalScene({ prices, onSelectTarget, currentTarget }: {
         return new Float32Array(p);
     }, []);
 
-    useFrame((state) => {
-        if (earthRef.current && !currentTarget) {
-            earthRef.current.rotation.y += 0.0005; // Base rotation
+    const targetCoords = currentTarget && REGION_COORDS[currentTarget];
+    const targetYRotation = targetCoords
+        ? Math.atan2(targetCoords[0], targetCoords[2])
+        : null;
+
+    useFrame((state, delta) => {
+        if (!earthRef.current) return;
+
+        if (targetYRotation !== null) {
+            const PI2 = Math.PI * 2;
+            let currentY = earthRef.current.rotation.y;
+
+            // Normalize target to 0-2PI
+            let targetY = targetYRotation % PI2;
+            if (targetY < 0) targetY += PI2;
+
+            // Normalize current to 0-2PI
+            let modCurrentY = currentY % PI2;
+            if (modCurrentY < 0) modCurrentY += PI2;
+
+            // Find shortest path direction
+            let diff = targetY - modCurrentY;
+            if (diff > Math.PI) diff -= PI2;
+            if (diff < -Math.PI) diff += PI2;
+
+            // Interpoloate using damped spring
+            earthRef.current.rotation.y = THREE.MathUtils.damp(currentY, currentY + diff, 4, delta);
+        } else {
+            // Continual base rotation when unselected
+            earthRef.current.rotation.y += 0.05 * delta;
         }
     });
 
-    // Calculate dynamic rotation if a target is selected
-    const targetCoords = currentTarget && REGION_COORDS[currentTarget];
-    const targetRotation = targetCoords
-        ? [0, Math.atan2(targetCoords[0], targetCoords[2]), 0]
-        : [0, 0, 0];
-
     return (
-        <motion.group
-            ref={earthRef as any}
-            animate={{
-                rotation: currentTarget ? targetRotation : [0, earthRef.current?.rotation.y || 0, 0]
-            }}
-            transition={{ type: "spring", stiffness: 50, damping: 20 }}
-        >
+        <group ref={earthRef}>
             {/* 3D Earth Points Globe */}
             <points scale={2.5}>
                 <bufferGeometry>
@@ -128,18 +142,18 @@ export default function GlobalScene({ prices, onSelectTarget, currentTarget }: {
                         {/* HTML Tooltip on the marker */}
                         <Html center distanceFactor={2}>
                             <div
-                                className={`flex flex-col items-center justify-center p-3 rounded-xl transition-all duration-300 cursor-pointer ${isCheap
-                                    ? "bg-neutral-900/80 backdrop-blur-md border border-neutral-700/80 text-white scale-110 shadow-xl z-50 hover:border-neutral-600"
-                                    : "bg-neutral-900/40 backdrop-blur-sm border border-neutral-800/50 text-neutral-400 opacity-60 hover:opacity-100 hover:bg-neutral-900/60"
+                                className={`flex flex-col items-center justify-center p-2 rounded-lg text-xs text-white cursor-pointer transition-all duration-300 ${isCheap
+                                    ? "bg-green-600/80 backdrop-blur-md border border-green-400 rotate-0 scale-125 shadow-[0_0_25px_rgba(34,197,94,0.7)] z-50 hover:bg-green-500"
+                                    : "bg-red-900/50 backdrop-blur-sm border border-red-700/50 opacity-50 hover:opacity-100"
                                     }`}
                                 onClick={() => onSelectTarget(rp.region)}
                             >
-                                <div className="font-semibold text-xs tracking-wider uppercase">{rp.region}</div>
-                                <div className={`text-[10px] font-mono mt-1 ${isCheap ? 'text-neutral-300' : 'text-neutral-500'}`}>${rp.price.toFixed(3)}/hr</div>
+                                <div className="font-bold tracking-wider">{rp.region}</div>
+                                <div className={`text-[10px] font-mono mt-1 ${isCheap ? 'text-green-200' : 'text-red-300'}`}>${rp.price.toFixed(3)}/hr</div>
 
                                 {isCheap && (
                                     <button
-                                        className="mt-3 text-[10px] font-medium tracking-widest uppercase bg-neutral-800 border border-neutral-700 text-white px-3 py-1.5 rounded-lg transition-colors hover:bg-neutral-700 hover:border-neutral-600"
+                                        className="mt-2 text-[10px] font-bold uppercase tracking-widest bg-white text-green-900 px-3 py-1 rounded transition-colors hover:bg-green-100"
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             onSelectTarget(rp.region);
@@ -153,6 +167,6 @@ export default function GlobalScene({ prices, onSelectTarget, currentTarget }: {
                     </group>
                 );
             })}
-        </motion.group>
+        </group>
     );
 }
