@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./vibrant-demo.webp" alt="SentinelAura 3D Dashboard Demo" width="100%" />
+  <img src="./final-demo.webp" alt="SentinelAura 3D Dashboard Demo" width="100%" />
 
   <h1>SentinelAura 🌍</h1>
   <p><strong>Visual Geographic Arbitrage Engine for Kubernetes</strong></p>
@@ -37,8 +37,6 @@ SentinelAura is built with a strict separation of concerns, heavily utilizing co
 * **Tailwind v4**: Implements a strict, dark-themed "Memoria" design system alongside vibrant, gamified neon markers for immediate visual alerts.
 
 ---
-
-![SentinelAura Highlight Panel](./dummy-demo.webp)
 
 ## Core Features
 
