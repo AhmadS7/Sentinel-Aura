@@ -8,3 +8,4 @@ backend/*.out
 .env.development.local
 .env.test.local
 .env.production.local
+TEACH_ME.md

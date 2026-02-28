@@ -20,7 +20,7 @@ func main() {
 
 	// Initialize Controllers
 	priceOracle := oracle.NewPriceOracle(redisUrl)
-	k8sController := k8s.NewController()
+	k8sController := k8s.NewMigrationController()
 	apiHandlers := api.NewAPI(priceOracle, k8sController)
 
 	// Start Price Simulation in background

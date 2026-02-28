@@ -9,12 +9,24 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-type RegionPrice struct {
-	Region string  `json:"region"`
-	Price  float64 `json:"price"`
+type RegionContext struct {
+	Region    string `json:"region"`
+	ContextID string `json:"contextId"`
 }
 
-var Regions = []string{"US-East", "US-West", "EU-West", "AP-South", "AP-Northeast"}
+var ContextMap = []RegionContext{
+	{"US-East", "ctx-us-east"},
+	{"US-West", "ctx-us-west"},
+	{"EU-West", "ctx-eu-west"},
+	{"AP-South", "ctx-ap-south"},
+	{"AP-Northeast", "ctx-ap-northeast"},
+}
+
+type RegionPrice struct {
+	Region    string  `json:"region"`
+	ContextID string  `json:"contextId"`
+	Price     float64 `json:"price"`
+}
 
 type PriceOracle struct {
 	redisClient *redis.Client
@@ -49,26 +61,26 @@ func (po *PriceOracle) StartSimulation(ctx context.Context) {
 
 func (po *PriceOracle) updatePrices(ctx context.Context) {
 	// Base prices around $0.05/hr
-	for _, region := range Regions {
+	for _, rc := range ContextMap {
 		price := 0.04 + rand.Float64()*0.02
-		
+
 		// Simulate a rare sudden price drop (arbitrage opportunity)
 		if rand.Float64() < 0.15 {
 			price = price * 0.3 // Huge 70% drop
 		}
 
-		data, _ := json.Marshal(RegionPrice{Region: region, Price: price})
-		po.redisClient.Set(ctx, "price:"+region, data, 10*time.Second)
+		data, _ := json.Marshal(RegionPrice{Region: rc.Region, ContextID: rc.ContextID, Price: price})
+		po.redisClient.Set(ctx, "price:"+rc.Region, data, 10*time.Second)
 	}
 }
 
 func (po *PriceOracle) GetPrices(ctx context.Context) ([]RegionPrice, error) {
 	var prices []RegionPrice
-	for _, region := range Regions {
-		val, err := po.redisClient.Get(ctx, "price:"+region).Result()
+	for _, rc := range ContextMap {
+		val, err := po.redisClient.Get(ctx, "price:"+rc.Region).Result()
 		if err != nil {
 			// If missing, use a default fallback
-			prices = append(prices, RegionPrice{Region: region, Price: 0.05})
+			prices = append(prices, RegionPrice{Region: rc.Region, ContextID: rc.ContextID, Price: 0.05})
 			continue
 		}
 		var rp RegionPrice
