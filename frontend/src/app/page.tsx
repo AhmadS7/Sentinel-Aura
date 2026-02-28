@@ -105,11 +105,12 @@ export default function Dashboard() {
 
       <div className="absolute inset-0 z-0 w-full h-full pointer-events-auto">
         <Canvas camera={{ position: [0, 0, 3], fov: 45 }}>
-          <ambientLight intensity={0.5} />
-          <directionalLight position={[10, 10, 5]} intensity={1} />
+          <ambientLight intensity={1.5} />
+          <directionalLight position={[10, 10, 5]} intensity={2.5} color="#ffffff" />
+          <pointLight position={[-10, -10, -10]} intensity={1.5} color="#a1a1aa" />
           <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
           <GlobalScene prices={prices} onSelectTarget={handleSelectTarget} currentTarget={targetRegion} />
-          <OrbitControls enableZoom={true} enablePan={false} maxDistance={6} minDistance={1.5} />
+          <OrbitControls enableZoom={true} enablePan={false} maxDistance={15} minDistance={1.5} />
         </Canvas>
       </div>
 

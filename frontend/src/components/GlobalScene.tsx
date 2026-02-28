@@ -29,7 +29,7 @@ const AtmosphereShader = {
     uniforms: {
         c: { type: "f", value: 0.5 },
         p: { type: "f", value: 3.5 },
-        glowColor: { type: "c", value: new THREE.Color(0x52525b) }, // Zinc 600
+        glowColor: { type: "c", value: new THREE.Color(0xa1a1aa) }, // Zinc 400
         viewVector: { type: "v3", value: new THREE.Vector3() },
     },
     vertexShader: `
@@ -98,13 +98,13 @@ export default function GlobalScene({ prices, onSelectTarget, currentTarget }: {
                         itemSize={3}
                     />
                 </bufferGeometry>
-                <pointsMaterial color="#52525b" size={0.015} sizeAttenuation transparent opacity={0.8} />
+                <pointsMaterial color="#d4d4d8" size={0.03} sizeAttenuation transparent opacity={0.8} />
             </points>
 
             {/* Core surface to block see-through for the grid */}
             <mesh scale={2.5}>
                 <sphereGeometry args={[0.98, 32, 32]} />
-                <meshBasicMaterial color="#020617" />
+                <meshBasicMaterial color="#0a0a0a" />
             </mesh>
 
             {/* Atmospheric Glow */}
