@@ -40,6 +40,7 @@ func main() {
 
 	r.GET("/api/prices", apiHandlers.GetPrices)
 	r.POST("/api/migrate", apiHandlers.Migrate)
+	r.GET("/api/ws", apiHandlers.Hub.WebsocketHandler)
 
 	port := os.Getenv("PORT")
 	if port == "" {

@@ -26,6 +26,7 @@ type RegionPrice struct {
 	Region    string  `json:"region"`
 	ContextID string  `json:"contextId"`
 	Price     float64 `json:"price"`
+	Latency   int     `json:"latency"` // in milliseconds
 }
 
 type PriceOracle struct {
@@ -63,13 +64,25 @@ func (po *PriceOracle) updatePrices(ctx context.Context) {
 	// Base prices around $0.05/hr
 	for _, rc := range ContextMap {
 		price := 0.04 + rand.Float64()*0.02
+		
+		// Base latency around 20-80ms
+		latency := 20 + rand.Intn(60)
 
 		// Simulate a rare sudden price drop (arbitrage opportunity)
 		if rand.Float64() < 0.15 {
 			price = price * 0.3 // Huge 70% drop
+			// Frequently when price drops, latency might spike
+			if rand.Float64() < 0.3 {
+				latency = 200 + rand.Intn(100) // >200ms latency
+			}
 		}
 
-		data, _ := json.Marshal(RegionPrice{Region: rc.Region, ContextID: rc.ContextID, Price: price})
+		// Also occasionally just have high latency
+		if rand.Float64() < 0.1 {
+			latency = 150 + rand.Intn(150)
+		}
+
+		data, _ := json.Marshal(RegionPrice{Region: rc.Region, ContextID: rc.ContextID, Price: price, Latency: latency})
 		po.redisClient.Set(ctx, "price:"+rc.Region, data, 10*time.Second)
 	}
 }
@@ -80,7 +93,7 @@ func (po *PriceOracle) GetPrices(ctx context.Context) ([]RegionPrice, error) {
 		val, err := po.redisClient.Get(ctx, "price:"+rc.Region).Result()
 		if err != nil {
 			// If missing, use a default fallback
-			prices = append(prices, RegionPrice{Region: rc.Region, ContextID: rc.ContextID, Price: 0.05})
+			prices = append(prices, RegionPrice{Region: rc.Region, ContextID: rc.ContextID, Price: 0.05, Latency: 50})
 			continue
 		}
 		var rp RegionPrice

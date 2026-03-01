@@ -76,8 +76,14 @@ func NewMigrationController() *MigrationController {
 }
 
 // DryRun calculates if "Egress Cost" of moving the pod exceeds "Spot Savings" for the next 24 hours.
-func (c *MigrationController) DryRun(ctx context.Context, sourceCtx, targetCtx string, currentPrice, targetPrice float64) (bool, error) {
+// It also acts as a safety gate, vetoing migration if the target latency is > 200ms.
+func (c *MigrationController) DryRun(ctx context.Context, sourceCtx, targetCtx string, currentPrice, targetPrice float64, targetLatency int) (bool, error) {
 	log.Printf("Performing Safety DryRun: migrating %s -> %s", sourceCtx, targetCtx)
+
+	// Latency Safety Gate
+	if targetLatency > 200 {
+		return false, fmt.Errorf("migration vetoed by Safety Gate: target region latency is too high (%dms > 200ms)", targetLatency)
+	}
 
 	// Abstract Arbitrage Logic
 	// Assume state transfer is large: 500GB of egress data required per migration sequence

@@ -12,12 +12,14 @@ import (
 type API struct {
 	oracleController *oracle.PriceOracle
 	k8sController    *k8s.MigrationController
+	Hub              *WSHub
 }
 
 func NewAPI(oc *oracle.PriceOracle, kc *k8s.MigrationController) *API {
 	return &API{
 		oracleController: oc,
 		k8sController:    kc,
+		Hub:              NewWSHub(),
 	}
 }
 
@@ -51,6 +53,7 @@ func (api *API) Migrate(c *gin.Context) {
 
 	var sourceCtx, targetCtx string
 	var currentPrice, targetPrice float64
+	var targetLatency int
 
 	for _, p := range prices {
 		if p.Region == req.SourceRegion {
@@ -60,6 +63,7 @@ func (api *API) Migrate(c *gin.Context) {
 		if p.Region == req.TargetRegion {
 			targetCtx = p.ContextID
 			targetPrice = p.Price
+			targetLatency = p.Latency
 		}
 	}
 
@@ -69,7 +73,7 @@ func (api *API) Migrate(c *gin.Context) {
 	}
 
 	// Excecute DryRun Safety Logic
-	ok, err := api.k8sController.DryRun(context.Background(), sourceCtx, targetCtx, currentPrice, targetPrice)
+	ok, err := api.k8sController.DryRun(context.Background(), sourceCtx, targetCtx, currentPrice, targetPrice, targetLatency)
 	if !ok || err != nil {
 		c.JSON(http.StatusPreconditionFailed, gin.H{"error": "Migration blocked by DryRun: " + err.Error()})
 		return
@@ -81,6 +85,13 @@ func (api *API) Migrate(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Migration execution failed: " + err.Error()})
 		return
 	}
+
+	// Broadcast Migration Event to connected WebSocket clients
+	api.Hub.Broadcast("MIGRATION_EVENT", map[string]interface{}{
+		"source": req.SourceRegion,
+		"target": req.TargetRegion,
+		"status": "COMPLETED",
+	})
 
 	c.JSON(http.StatusOK, gin.H{"message": "Arbitrage Migration executed successfully across contexts"})
 }

@@ -23,6 +23,9 @@ export default function Dashboard() {
   const [totalSaving, setTotalSaving] = useState(12450.00);
   const [latestDrop, setLatestDrop] = useState<{ region: string, prev: number, curr: number } | null>(null);
 
+  // Migration Event state
+  const [activeMigration, setActiveMigration] = useState<{ source: string, target: string } | null>(null);
+
   useEffect(() => {
     const fetcher = async () => {
       const data = await fetchPrices();
@@ -46,7 +49,32 @@ export default function Dashboard() {
 
     fetcher();
     const interval = setInterval(fetcher, 3000);
-    return () => clearInterval(interval);
+
+    // WebSocket connection for Live Migration Events
+    const wsUrl = `ws://${window.location.hostname}:8080/api/ws`;
+    const ws = new WebSocket(wsUrl);
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === "MIGRATION_EVENT") {
+          const payload = data.payload;
+          setActiveMigration({ source: payload.source, target: payload.target });
+          
+          // Clear the migration line after some time (animation duration)
+          setTimeout(() => {
+            setActiveMigration(null);
+          }, 4000); 
+        }
+      } catch (err) {
+        console.error("WS parse error", err);
+      }
+    };
+
+    return () => {
+      clearInterval(interval);
+      ws.close();
+    };
   }, []);
 
   const handleSelectTarget = (region: string) => {
@@ -112,7 +140,12 @@ export default function Dashboard() {
           <directionalLight position={[10, 10, 5]} intensity={2.5} color="#ffffff" />
           <pointLight position={[-10, -10, -10]} intensity={1.5} color="#a1a1aa" />
           <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
-          <GlobalScene prices={prices} onSelectTarget={handleSelectTarget} currentTarget={targetRegion} />
+          <GlobalScene 
+            prices={prices} 
+            onSelectTarget={handleSelectTarget} 
+            currentTarget={targetRegion} 
+            activeMigration={activeMigration}
+          />
           <OrbitControls enableZoom={true} enablePan={false} maxDistance={15} minDistance={1.5} />
         </Canvas>
       </div>

@@ -53,7 +53,54 @@ const AtmosphereShader = {
   `
 };
 
-export default function GlobalScene({ prices, onSelectTarget, currentTarget }: { prices: RegionPrice[], onSelectTarget: (r: string) => void, currentTarget: string | null }) {
+function MigrationLine({ source, target }: { source: string, target: string }) {
+    const curveRef = useRef<THREE.TubeGeometry>(null);
+    const materialRef = useRef<THREE.MeshBasicMaterial>(null);
+
+    const sourceCoords = REGION_COORDS[source];
+    const targetCoords = REGION_COORDS[target];
+
+    const tubeGeom = useMemo(() => {
+        if (!sourceCoords || !targetCoords) return null;
+        const vStart = new THREE.Vector3(...sourceCoords);
+        const vEnd = new THREE.Vector3(...targetCoords);
+
+        // Midpoint pushed out slightly to curve the line over the globe surface
+        const midPoint = vStart.clone().lerp(vEnd, 0.5);
+        const distance = vStart.distanceTo(vEnd);
+        midPoint.normalize().multiplyScalar(2.5 * 1.05 + Math.min(distance * 0.4, 1.5)); // Arc height based on distance
+
+        const curve = new THREE.QuadraticBezierCurve3(vStart, midPoint, vEnd);
+
+        // Create Tube along the curve
+        return new THREE.TubeGeometry(curve, 64, 0.02, 8, false);
+    }, [sourceCoords, targetCoords]);
+
+    // Animate the line drawing effect
+    let progress = 0;
+    useFrame((state, delta) => {
+        if (curveRef.current && progress < 1) {
+            progress += delta * 0.5; // 2 seconds to complete
+            if (progress > 1) progress = 1;
+            curveRef.current.setDrawRange(0, Math.floor(64 * progress) * 48); // TubeGeometry verts
+        }
+        if (materialRef.current && progress >= 1) {
+            // slowly fade out after drawing is complete
+            materialRef.current.opacity = Math.max(0, materialRef.current.opacity - delta * 0.5);
+        }
+    });
+
+    if (!tubeGeom) return null;
+
+    return (
+        <mesh>
+            <primitive object={tubeGeom} ref={curveRef} />
+            <meshBasicMaterial ref={materialRef} color="#facc15" transparent opacity={0.8} />
+        </mesh>
+    );
+}
+
+export default function GlobalScene({ prices, onSelectTarget, currentTarget, activeMigration }: { prices: RegionPrice[], onSelectTarget: (r: string) => void, currentTarget: string | null, activeMigration: { source: string, target: string } | null }) {
     const earthRef = useRef<THREE.Group>(null);
 
     // Calculate points for the Earth sphere
@@ -165,6 +212,11 @@ export default function GlobalScene({ prices, onSelectTarget, currentTarget }: {
                     </group>
                 );
             })}
+
+            {/* Render Migration Line if active */}
+            {activeMigration && (
+                <MigrationLine source={activeMigration.source} target={activeMigration.target} />
+            )}
         </group>
     );
 }
